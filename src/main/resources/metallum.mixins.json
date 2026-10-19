@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.metallum.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+  ],
+  "client": [
+    "PreferredGraphicsApiMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

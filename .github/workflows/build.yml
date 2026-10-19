@@ -1,0 +1,79 @@
+name: build
+run-name: ${{ github.ref_name }}
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      minecraft_version: ${{ steps.meta.outputs.minecraft_version }}
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: resolve versions
+        id: meta
+        run: |
+          version="$(sed -n 's/^mod_version=//p' gradle.properties)"
+          minecraft_version="$(sed -n 's/^minecraft_version=//p' gradle.properties)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "minecraft_version=$minecraft_version" >> "$GITHUB_OUTPUT"
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: build
+        run: ./gradlew build
+      - name: capture build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: metallum
+          path: build/libs/metallum-${{ steps.meta.outputs.version }}.jar
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      JAR: release-artifacts/metallum-${{ needs.build.outputs.version }}.jar
+    steps:
+      - name: download build artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: metallum
+          path: release-artifacts
+
+      - name: publish to Modrinth
+        uses: cloudnode-pro/modrinth-publish@v2
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          project: w79ASAJD
+          version: ${{ needs.build.outputs.version }}
+          channel: alpha
+          loaders: fabric
+          game-versions: ${{ needs.build.outputs.minecraft_version }}
+          files: ${{ env.JAR }}
+          dependencies: |
+            [{ "project_id": "AANobbMI", "dependency_type": "optional" }]
+
+      - name: create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: ${{ env.JAR }}

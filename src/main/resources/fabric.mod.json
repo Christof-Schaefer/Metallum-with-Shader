@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "metallum",
+  "version": "${version}",
+  "name": "Metallum with Shader",
+  "description": "Metallum Metal backend for macOS with a built-in shader pack loader, tuned for Apple Silicon",
+  "authors": [
+    "kokodio"
+  ],
+  "contributors": [
+    "Christof-Schaefer"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Christof-Schaefer/Metallum-with-Shader",
+    "sources": "https://github.com/Christof-Schaefer/Metallum-with-Shader"
+  },
+  "license": "MIT",
+  "icon": "assets/metallum/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "preLaunch": [
+      "dev.kausik.shaders.ShaderLoaderPreLaunch"
+    ],
+    "main": [
+      "com.metallum.Metallum"
+    ],
+    "sodium:config_api_user": [
+      "com.metallum.compat.sodium.MetallumSodiumConfig"
+    ],
+    "client": [
+      "dev.kausik.shaders.ShaderLoaderMod"
+    ]
+  },
+  "mixins": [
+    "metallum.mixins.json",
+    "metallum.sodium.mixins.json",
+    "metallum.distanthorizons.mixins.json",
+    "metallum.shine.mixins.json",
+    "minecraft-shader-loader.mixins.json",
+    "minecraft-scene-api.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3-",
+    "java": ">=25"
+  }
+}

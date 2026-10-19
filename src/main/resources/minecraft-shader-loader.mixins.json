@@ -1,0 +1,36 @@
+{
+  "required": true,
+  "package": "dev.kausik.shaders.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "ShaderGameRendererMixin",
+    "ShaderHudMixin",
+    "ShaderScreenEffectMixin",
+    "ShaderRenderSystemMixin",
+    "ShaderPipelineCacheMixin",
+    "ShaderGlslCompilerMixin",
+    "ShaderCommandEncoderMixin",
+    "TerrainBufferBuilderMixin",
+    "TerrainChunkLayerMixin",
+    "DynamicBlockPipelineMixin",
+    "PortalBufferBuilderMixin",
+    "TerrainSectionCompilerMixin",
+    "TerrainModelBlockRendererMixin",
+    "TerrainFluidRendererMixin",
+    "TerrainBlockLightingMixin",
+    "LevelRendererShaderMixin",
+    "LevelExtractorShaderMixin",
+    "TerrainIndigoLightingMixin",
+    "TerrainIndigoAoMixin",
+    "TerrainIndigoFlatLightingMixin",
+    "EntityFeatureTagMixin",
+    "BlockEntityFeatureTagMixin",
+    "FeatureSubmitTagMixin",
+    "FeatureTranslucentSubmitTagMixin",
+    "FeatureGroupTagMixin",
+    "FeaturePreparedGroupTagMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
