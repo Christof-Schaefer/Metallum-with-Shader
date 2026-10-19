@@ -1,65 +1,80 @@
 # Metallum with Shader
 
-Fork von [Metallum](https://github.com/kokodio/metallum) (Metal-Backend für Minecraft auf macOS) mit eingebautem Shaderpack-Loader. Das Ziel: MakeUp UltraFast mit Schatten soll auf einem MacBook Air M1 (8 GB) flüssig laufen.
+A fork of [Metallum](https://github.com/kokodio/metallum), the Metal rendering backend for Minecraft on macOS. It adds a built-in shader pack loader based on [Kausik-Velaga/minecraft-metal-renderer](https://github.com/Kausik-Velaga/minecraft-metal-renderer). The goal is to run MakeUp UltraFast with shadows smoothly on a MacBook Air M1 (8 GB).
 
-Minecraft 26.3, Fabric Loader 0.19.5, Apple Silicon.
+Minecraft 26.3, Fabric Loader 0.19.5, Apple Silicon only.
+
+> [!IMPORTANT]
+> **This mod only works with the shader pack bundled in this repository**, `shaderpacks/MakeUp-UltraFast-Metallum-with-Shader.zip`. That pack is a modified version of MakeUp UltraFast 9.5g.
+>
+> The loader's compatibility fixes and performance work were built and tested against exactly this pack. Other shader packs, and other versions of MakeUp (including the unmodified 9.5g), are not supported. They may fail to load, render incorrectly or run slowly.
 
 ## Installation
 
-1. `Metallum-with-Shader-<version>.jar` (aus den Releases oder `build/libs/`) in den `mods`-Ordner legen. Andere Metallum-Jars entfernen, weil die Mod-ID gleich ist.
-2. `shaderpacks/MakeUp-UltraFast-Metallum-with-Shader.zip` in den `shaderpacks`-Ordner legen.
-3. `config/minecraft-shader-loader.properties` in den `config`-Ordner legen. Die Datei wählt das Pack aus und enthält alle Schalter.
+1. Put `Metallum-with-Shader-<version>.jar` in your `mods` folder. You can get it from the [Releases](../../releases) or build it yourself. Remove any other Metallum jar first, because they share the mod id `metallum`.
+2. Put `MakeUp-UltraFast-Metallum-with-Shader.zip` in your `shaderpacks` folder.
+3. Put `minecraft-shader-loader.properties` in your `config` folder. This file selects the pack and holds all switches. The pack is not chosen in a menu.
 
-Bauen geht mit Java 25: `./gradlew build`. Das Jar landet in `build/libs/`.
+To build, use Java 25 and run `./gradlew build`. The jar ends up in `build/libs/`.
 
-## Messwerte (MacBook Air M1, 1144×643, Sichtweite 8)
+## Results
 
-| Stand | FPS |
+Measured on a MacBook Air M1 at 1144×643 with render distance 8:
+
+| Setup | FPS |
 |---|---|
 | Vanilla | ~200 |
-| MakeUp mit Schatten, alter Loader | 10–18 |
-| Dieser Fork, renderScale 0.8 | ~75 beim Fliegen, ~55 beim Laufen |
+| MakeUp with shadows, original loader | 10–18 |
+| This fork, `renderScale=0.8` | ~75 flying, ~55 walking |
 
-## Änderungen gegenüber Metallum und dem Shader-Loader
+Walking is slower than flying because the shadow cache rebuilds more often while walking. It is triggered by the camera crossing grid cells and by chunk updates.
 
-- **Schattenkarten-Cache:** Opakes Terrain wird nur neu gerendert, wenn sich der Sonnenwinkel, das Kamera-Rasterfeld oder Chunks ändern oder wenn N Frames vergangen sind. Der Neuaufbau läuft verteilt über mehrere Frames in eine zweite Karte, danach werden die Karten getauscht.
-- **Render-Skalierung:** Das Pack rendert in reduzierter Auflösung, der `final`-Pass skaliert hoch.
-- **Kein Alpha-Test-`discard` auf opaken Pipelines,** damit die Hidden-Surface-Removal der GPU greift.
-- **Regex-Cache in `PackPrograms.sequence`:** Vorher entstanden ~500 MB Müll pro Sekunde, mit GC-Pausen von 30–65 ms.
-- **Echte GPU-Zeitstempel** für den Profiler.
-- **Config-Brücke:** Alle `minecraftShaders.*`-, `minecraftScene.*`- und `metallum.*`-Keys aus der Properties-Datei werden zu System-Properties.
-- **Tracked Hazards** statt globaler Fence-Kette im Metal-Backend.
-- **Hardware-Schattenvergleich** (`depth-comparison-lequal`).
-- Kompatibilitäts-Fixes für MakeUp: vec2-Custom-Uniforms, Material-IDs, shadowcolor-Formate, `gl_FogFragCoord`, NaN-Matrix im ersten Frame.
+## Changes compared to Metallum and the original loader
 
-## Schalter (`config/minecraft-shader-loader.properties`, Neustart nötig)
+- **Shadow map cache.** Opaque terrain is only re-rendered into the shadow map when one of these happens: the sun angle changes, the camera enters a new grid cell, chunks change, or a maximum age is reached. The rebuild goes into a second map, spread over several frames, and the maps are then swapped.
+- **Render scale.** The pack renders at a reduced resolution, and the `final` pass upscales the result.
+- **No alpha-test `discard` on opaque pipelines.** This lets the GPU's hidden-surface removal work again.
+- **Regex cache in `PackPrograms.sequence`.** The loader used to compile regexes every frame. That produced about 500 MB of garbage per second and GC pauses of 30–65 ms.
+- **Real GPU timestamps** for the built-in profiler.
+- **Config bridge.** Every `minecraftShaders.*`, `minecraftScene.*` and `metallum.*` key in the properties file becomes a system property.
+- **Tracked hazards** in the Metal backend replace the global fence chain.
+- **Hardware shadow comparison** using `depth-comparison-lequal`.
+- **MakeUp compatibility fixes:** vec2 custom uniforms, material IDs, shadowcolor formats, `gl_FogFragCoord`, and a NaN matrix on the first frame.
 
-| Key | Standard | Wirkung |
+## Switches
+
+All switches live in `config/minecraft-shader-loader.properties`. A restart is required after changing them.
+
+| Key | Default | Effect |
 |---|---|---|
-| `minecraftShaders.shadowCache` | true | Schatten-Cache |
-| `minecraftShaders.shadowCacheAngle` | 0.25 | Sonnenwinkel-Schritt in Grad |
-| `minecraftShaders.shadowCacheMaxAge` | 120 | erzwungener Neuaufbau nach N Frames |
-| `minecraftShaders.shadowCacheSlices` | 8 | Neuaufbau auf N Frames verteilen |
-| `minecraftShaders.renderScale` | 0.8 | interne Auflösung (1 = nativ) |
-| `metallum.trackedHazards` | true | false = alte Fence-Kette |
-| `minecraftShaders.hardwareShadowComparison` | true | false = emuliert |
-| `minecraftShaders.keepOpaqueAlphaTest` | false | true = alter Alpha-Test |
-| `minecraftShaders.profiler.enabled` | false | GPU-Messung nach `logs/shader-profile.jsonl` |
+| `minecraftShaders.shadowCache` | true | Shadow map cache |
+| `minecraftShaders.shadowCacheAngle` | 0.25 | Sun angle step in degrees that triggers a rebuild |
+| `minecraftShaders.shadowCacheMaxAge` | 120 | Forced rebuild after N frames |
+| `minecraftShaders.shadowCacheSlices` | 8 | Spread a rebuild over N frames |
+| `minecraftShaders.renderScale` | 0.8 | Internal resolution (1 = native) |
+| `metallum.trackedHazards` | true | false = old fence chain |
+| `minecraftShaders.hardwareShadowComparison` | true | false = emulated comparison |
+| `minecraftShaders.keepOpaqueAlphaTest` | false | true = old alpha test |
+| `minecraftShaders.profiler.enabled` | false | Per-pass GPU timing written to `logs/shader-profile.jsonl` |
 
-## Shaderpack
+## Shader pack
 
-`shaderpacks/MakeUp-UltraFast-Metallum-with-Shader.zip` basiert auf **[MakeUp Ultra Fast](https://github.com/javiergcim/MakeUpUltraFast) 9.5g** von javiergcim und steht unter LGPL-3.0 (siehe `LICENSE` im Zip). Geändert wurden nur `shaders/lib/config.glsl` und `shaders/shaders.properties`, und zwar diese Einstellungen:
+`shaderpacks/MakeUp-UltraFast-Metallum-with-Shader.zip` is based on [MakeUp Ultra Fast](https://github.com/javiergcim/MakeUpUltraFast) 9.5g by javiergcim and is licensed under LGPL-3.0; see `LICENSE` inside the zip.
 
-- Reflexionen auf Stufe 1
-- AO aus
-- AA: nur Denoise
-- farbige Schatten, Bloom und volumetrisches Licht aus
-- Wolken mit 7 Samples
-- kurze Schattendistanz (75 Blöcke, Qualitätsstufe 1)
+Only `shaders/lib/config.glsl` and `shaders/shaders.properties` were changed:
+
+- Reflection quality set to 1
+- Ambient occlusion off
+- Antialiasing set to denoise only
+- Colored shadows, bloom and volumetric light off
+- Volumetric clouds use 7 samples
+- Short shadow distance (75 blocks, quality level 1)
 - `shadow.translucent=false`
 
-## Lizenzen
+## Licenses
 
-- Metallum: MIT, © kokodio (siehe `LICENSE`)
+- Metallum: MIT, © kokodio (see `LICENSE`)
+- Shader loader and scene API (`dev.kausik.*`): MIT, © Minecraft Metal Renderer contributors, from [Kausik-Velaga/minecraft-metal-renderer](https://github.com/Kausik-Velaga/minecraft-metal-renderer) (see `LICENSES/MIT-minecraft-metal-renderer.txt`)
 - MakeUp Ultra Fast: LGPL-3.0, © javiergcim
-- Shader-Loader und Scene-API (`dev.kausik.*`): MIT, © Minecraft Metal Renderer contributors, aus [Kausik-Velaga/minecraft-metal-renderer](https://github.com/Kausik-Velaga/minecraft-metal-renderer) (siehe `LICENSES/MIT-minecraft-metal-renderer.txt`)
+
+This is an unofficial project. It is not approved by or associated with Mojang or Microsoft.
