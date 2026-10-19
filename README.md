@@ -1,6 +1,6 @@
 # Metallum with Shader
 
-A fork of [Metallum](https://github.com/kokodio/metallum), the Metal rendering backend for Minecraft on macOS. It adds a built-in shader pack loader based on [Kausik-Velaga/minecraft-metal-renderer](https://github.com/Kausik-Velaga/minecraft-metal-renderer). The goal is to run MakeUp UltraFast with shadows smoothly on a MacBook Air M1 (8 GB).
+A fork of [Metallum](https://github.com/kokodio/metallum), the Metal rendering backend for Minecraft on macOS. It adds a built-in shader pack loader based on [Kausik-Velaga/minecraft-metal-renderer](https://github.com/Kausik-Velaga/minecraft-metal-renderer). The goal is to run MakeUp UltraFast with shadows smoothly on a MacBook Air M1 (8 GB). Right now were are at about 60 fps.
 
 Minecraft 26.3, Fabric Loader 0.19.5, Apple Silicon only.
 
