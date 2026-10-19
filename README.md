@@ -62,4 +62,4 @@ Bauen geht mit Java 25: `./gradlew build`. Das Jar landet in `build/libs/`.
 
 - Metallum: MIT, © kokodio (siehe `LICENSE`)
 - MakeUp Ultra Fast: LGPL-3.0, © javiergcim
-- Shader-Loader (`dev.kausik.shaders`): stammt von Kausik. Die Lizenz ist hier nicht dokumentiert, deshalb ist dieses Repo privat.
+- Shader-Loader und Scene-API (`dev.kausik.*`): MIT, © Minecraft Metal Renderer contributors, aus [Kausik-Velaga/minecraft-metal-renderer](https://github.com/Kausik-Velaga/minecraft-metal-renderer) (siehe `LICENSES/MIT-minecraft-metal-renderer.txt`)
